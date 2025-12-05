@@ -3,150 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR Marker - Bumi 3D</title>
-
-    <!-- A-Frame + AR.js -->
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.3.2/aframe/build/aframe-ar.min.js"></script>
-
+    <title>AR Marker - Bumi 3D (Hiro Marker)</title>
+    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; overflow: hidden; }
-        #info { 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        #info {
             position: fixed;
-            top: 15px; left: 15px;
-            padding: 10px 15px;
-            background: rgba(0,0,0,0.7);
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.85);
             color: white;
-            border-radius: 10px;
-            font-size: 14px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 300px;
             z-index: 9999;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        #info h3 {
+            margin: 0 0 12px 0;
+            font-size: 17px;
+            color: #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #info p {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .status.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.inactive {
+            background: #f44336;
+            color: white;
+        }
+        .status.loading {
+            background: #FF9800;
+            color: white;
         }
         #controls {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .button-row {
             display: flex;
             gap: 10px;
-            padding: 15px;
-            background: rgba(0,0,0,0.8);
-            border-radius: 10px;
-            z-index: 9999;
         }
         button {
-            padding: 10px 15px;
+            padding: 12px 20px;
             background: #4CAF50;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 13px;
             font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
-        button:hover { background: #45a049; }
-        #fileInput { display: none; }
+        button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        button.secondary {
+            background: #2196F3;
+        }
+        button.secondary:hover {
+            background: #1976D2;
+        }
+        #fileInput {
+            display: none;
+        }
+        #instructions {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            z-index: 9998;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        #instructions h2 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        #instructions ol {
+            text-align: left;
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        #instructions li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        #instructions button {
+            margin-top: 15px;
+            width: 100%;
+        }
+        .marker-preview {
+            width: 150px;
+            height: 150px;
+            margin: 15px auto;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+        }
+        a-scene {
+            width: 100vw;
+            height: 100vh;
+        }
     </style>
 </head>
-
 <body>
-
-    <!-- UI -->
-    <div id="info">
-        <strong>🌍 AR Bumi 3D</strong><br>
-        Marker: <span id="markerStatus">Menunggu...</span><br>
-        Model: <span id="modelStatus">Default Sphere</span>
+    <div id="instructions">
+        <h2>📱 Cara Menggunakan</h2>
+        <div class="marker-preview">
+            <svg viewBox="0 0 100 100" style="width:100%;height:100%">
+                <rect width="100" height="100" fill="black"/>
+                <rect x="15" y="15" width="70" height="70" fill="white"/>
+                <text x="50" y="60" text-anchor="middle" font-size="24" font-weight="bold" fill="black">Hiro</text>
+            </svg>
+        </div>
+        <ol>
+            <li>Cetak atau tampilkan <strong>Hiro Marker</strong> di layar lain</li>
+            <li>Upload file <strong>bumi.glb</strong> Anda</li>
+            <li>Arahkan kamera ke marker</li>
+            <li>Model 3D akan muncul di atas marker!</li>
+        </ol>
+        <button onclick="startAR()">🚀 Mulai AR</button>
     </div>
 
-    <div id="controls">
-        <button onclick="document.getElementById('fileInput').click()">📁 Upload bumi.glb</button>
-        <button onclick="toggleRotation()">🔄 Rotasi <span id="rotationState">ON</span></button>
+    <a-scene
+        id="arScene"
+        embedded
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true; precision: medium;"
+        style="display: none;">
+        
+        <a-assets>
+            <a-asset-item id="bumiModel" src=""></a-asset-item>
+        </a-assets>
+
+        <a-marker id="hiroMarker" preset="hiro">
+            <a-entity
+                id="model"
+                scale="0.5 0.5 0.5"
+                position="0 0.5 0"
+                rotation="0 0 0"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
+            </a-entity>
+        </a-marker>
+
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <div id="info" style="display: none;">
+        <h3>🌍 AR Bumi 3D</h3>
+        <p>Kamera: <span id="cameraStatus" class="status loading">Loading...</span></p>
+        <p>Marker: <span id="markerStatus" class="status inactive">Cari Hiro Marker</span></p>
+        <p>Model: <span id="modelStatus" class="status inactive">Belum Upload</span></p>
+    </div>
+
+    <div id="controls" style="display: none;">
+        <div class="button-row">
+            <button onclick="document.getElementById('fileInput').click()">
+                📁 Upload bumi.glb
+            </button>
+            <button class="secondary" onclick="toggleRotation()">
+                🔄 <span id="rotationState">Rotasi ON</span>
+            </button>
+        </div>
+        <div class="button-row">
+            <button class="secondary" onclick="downloadMarker()">
+                📥 Download Marker
+            </button>
+            <button class="secondary" onclick="showInstructions()">
+                ❓ Bantuan
+            </button>
+        </div>
     </div>
 
     <input type="file" id="fileInput" accept=".glb,.gltf">
 
-    <!-- AR Scene -->
-    <a-scene
-        vr-mode-ui="enabled: false"
-        embedded
-        arjs="trackingMethod: best; sourceType: camera; debugUIEnabled: false;"
-        renderer="colorManagement: true; physicallyCorrectLights: true;"
-    >
-
-        <!-- Marker HIRO -->
-        <a-marker id="hiro" preset="hiro">
-            <a-entity id="modelContainer" position="0 0 0" rotation="0 0 0"></a-entity>
-        </a-marker>
-
-        <!-- Camera -->
-        <a-entity camera></a-entity>
-    </a-scene>
-
-    <!-- Script Model Loader -->
     <script>
-        let autoRotate = true;
-        let modelContainer = document.querySelector("#modelContainer");
-        let marker = document.querySelector("#hiro");
-        let model = null;
+        let modelEntity;
+        let rotationEnabled = true;
+        let markerFound = false;
 
-        // Marker status listener
-        marker.addEventListener("markerFound", () => {
-            document.getElementById("markerStatus").textContent = "Terdeteksi ✓";
-        });
-
-        marker.addEventListener("markerLost", () => {
-            document.getElementById("markerStatus").textContent = "Tidak Terdeteksi";
-        });
-
-        // Default Sphere (placeholder)
-        function loadDefaultSphere() {
-            const sphere = document.createElement("a-sphere");
-            sphere.setAttribute("radius", "0.5");
-            sphere.setAttribute("color", "#2196F3");
-            sphere.setAttribute("metalness", "0.3");
-            sphere.setAttribute("roughness", "0.4");
-            modelContainer.appendChild(sphere);
-            model = sphere;
+        function startAR() {
+            document.getElementById('instructions').style.display = 'none';
+            document.getElementById('arScene').style.display = 'block';
+            document.getElementById('info').style.display = 'block';
+            document.getElementById('controls').style.display = 'flex';
+            
+            // Wait for AR.js to initialize
+            setTimeout(() => {
+                updateStatus('cameraStatus', 'Aktif', true);
+            }, 2000);
+            
+            // Setup marker detection
+            setupMarkerDetection();
         }
-        loadDefaultSphere();
 
-        // File Upload
-        document.getElementById("fileInput").addEventListener("change", function(event) {
+        function setupMarkerDetection() {
+            const marker = document.querySelector('#hiroMarker');
+            
+            marker.addEventListener('markerFound', () => {
+                markerFound = true;
+                updateStatus('markerStatus', 'Terdeteksi ✓', true);
+                console.log('Hiro Marker Found!');
+            });
+            
+            marker.addEventListener('markerLost', () => {
+                markerFound = false;
+                updateStatus('markerStatus', 'Hilang', false);
+                console.log('Hiro Marker Lost!');
+            });
+        }
+
+        document.getElementById('fileInput').addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
 
-            let url = URL.createObjectURL(file);
+            updateStatus('modelStatus', 'Loading...', 'loading');
 
-            // Hapus model lama
-            if (model) model.remove();
-
-            // Load GLB
-            let entity = document.createElement("a-entity");
-            entity.setAttribute("gltf-model", url);
-            entity.setAttribute("scale", "0.5 0.5 0.5");
-            modelContainer.appendChild(entity);
-            model = entity;
-
-            document.getElementById("modelStatus").textContent = file.name + " ✓";
+            try {
+                // Create object URL for the model
+                const url = URL.createObjectURL(file);
+                
+                // Remove existing model if any
+                modelEntity = document.querySelector('#model');
+                while (modelEntity.firstChild) {
+                    modelEntity.removeChild(modelEntity.firstChild);
+                }
+                
+                // Create new GLTF model
+                const gltfModel = document.createElement('a-gltf-model');
+                gltfModel.setAttribute('src', url);
+                gltfModel.setAttribute('scale', '1 1 1');
+                gltfModel.setAttribute('position', '0 0 0');
+                
+                modelEntity.appendChild(gltfModel);
+                
+                // Wait for model to load
+                gltfModel.addEventListener('model-loaded', () => {
+                    updateStatus('modelStatus', file.name + ' ✓', true);
+                    console.log('Model loaded successfully!');
+                    
+                    // Auto-adjust scale if needed
+                    setTimeout(() => {
+                        adjustModelScale(gltfModel);
+                    }, 500);
+                });
+                
+                gltfModel.addEventListener('model-error', (error) => {
+                    console.error('Model loading error:', error);
+                    updateStatus('modelStatus', 'Error', false);
+                    alert('Gagal memuat model. Pastikan file GLB/GLTF valid.');
+                });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                updateStatus('modelStatus', 'Error', false);
+                alert('Terjadi kesalahan saat memuat file.');
+            }
         });
 
-        // Rotasi
-        function toggleRotation() {
-            autoRotate = !autoRotate;
-            document.getElementById("rotationState").textContent = autoRotate ? "ON" : "OFF";
+        function adjustModelScale(gltfModel) {
+            // Get the model object
+            const model = gltfModel.getObject3D('mesh');
+            if (!model) return;
+            
+            // Calculate bounding box
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            
+            // Scale to fit nicely on marker (target size ~1 unit)
+            if (maxDim > 0) {
+                const targetSize = 1;
+                const scale = targetSize / maxDim;
+                gltfModel.setAttribute('scale', `${scale} ${scale} ${scale}`);
+            }
         }
 
-        // Auto-rotate update loop
-        setInterval(() => {
-            if (autoRotate && model) {
-                let rot = model.getAttribute("rotation");
-                model.setAttribute("rotation", {
-                    x: rot.x,
-                    y: rot.y + 1,
-                    z: rot.z
-                });
+        function toggleRotation() {
+            rotationEnabled = !rotationEnabled;
+            const modelEl = document.querySelector('#model');
+            
+            if (rotationEnabled) {
+                modelEl.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear');
+                document.getElementById('rotationState').textContent = 'Rotasi ON';
+            } else {
+                modelEl.removeAttribute('animation');
+                document.getElementById('rotationState').textContent = 'Rotasi OFF';
             }
-        }, 40);
-    </script>
+        }
 
+        function downloadMarker() {
+            // Create a canvas with Hiro marker
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 800;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw marker
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, 800, 800);
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(100, 100, 600, 600);
+            
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 200px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Hiro', 400, 400);
+            
+            // Download
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'hiro-marker.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function showInstructions() {
+            document.getElementById('instructions').style.display = 'block';
+        }
+
+        function updateStatus(elementId, text, state = null) {
+            const element = document.getElementById(elementId);
+            element.textContent = text;
+            
+            if (state !== null && element.classList.contains('status')) {
+                element.className = 'status';
+                if (state === true) {
+                    element.classList.add('active');
+                } else if (state === 'loading') {
+                    element.classList.add('loading');
+                } else {
+                    element.classList.add('inactive');
+                }
+            }
+        }
+
+        // Prevent default touch behaviors
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
 </body>
 </html>
-
