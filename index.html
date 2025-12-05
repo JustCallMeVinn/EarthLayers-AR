@@ -1,51 +1,151 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>3D Model Viewer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AR Marker - Bumi 3D</title>
+
+    <!-- A-Frame + AR.js -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.3.2/aframe/build/aframe-ar.min.js"></script>
+
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
+        body, html { margin: 0; padding: 0; overflow: hidden; }
+        #info { 
+            position: fixed;
+            top: 15px; left: 15px;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 9999;
+        }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            z-index: 9999;
+        }
+        button {
+            padding: 10px 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background: #45a049; }
+        #fileInput { display: none; }
     </style>
 </head>
+
 <body>
-<script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.161/examples/jsm/controls/OrbitControls.js';
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff);
+    <!-- UI -->
+    <div id="info">
+        <strong>🌍 AR Bumi 3D</strong><br>
+        Marker: <span id="markerStatus">Menunggu...</span><br>
+        Model: <span id="modelStatus">Default Sphere</span>
+    </div>
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(3, 2, 3);
+    <div id="controls">
+        <button onclick="document.getElementById('fileInput').click()">📁 Upload bumi.glb</button>
+        <button onclick="toggleRotation()">🔄 Rotasi <span id="rotationState">ON</span></button>
+    </div>
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+    <input type="file" id="fileInput" accept=".glb,.gltf">
 
-// Light
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x888888, 1.2);
-scene.add(hemiLight);
+    <!-- AR Scene -->
+    <a-scene
+        vr-mode-ui="enabled: false"
+        embedded
+        arjs="trackingMethod: best; sourceType: camera; debugUIEnabled: false;"
+        renderer="colorManagement: true; physicallyCorrectLights: true;"
+    >
 
-// Load Model
-const loader = new GLTFLoader();
-loader.load('bumi.glb', (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(1, 1, 1);
-    scene.add(model);
-});
+        <!-- Marker HIRO -->
+        <a-marker id="hiro" preset="hiro">
+            <a-entity id="modelContainer" position="0 0 0" rotation="0 0 0"></a-entity>
+        </a-marker>
 
-// Controls
-const controls = new OrbitControls(camera, renderer.domElement);
+        <!-- Camera -->
+        <a-entity camera></a-entity>
+    </a-scene>
 
-// Render Loop
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-}
-animate();
+    <!-- Script Model Loader -->
+    <script>
+        let autoRotate = true;
+        let modelContainer = document.querySelector("#modelContainer");
+        let marker = document.querySelector("#hiro");
+        let model = null;
 
-</script>
+        // Marker status listener
+        marker.addEventListener("markerFound", () => {
+            document.getElementById("markerStatus").textContent = "Terdeteksi ✓";
+        });
+
+        marker.addEventListener("markerLost", () => {
+            document.getElementById("markerStatus").textContent = "Tidak Terdeteksi";
+        });
+
+        // Default Sphere (placeholder)
+        function loadDefaultSphere() {
+            const sphere = document.createElement("a-sphere");
+            sphere.setAttribute("radius", "0.5");
+            sphere.setAttribute("color", "#2196F3");
+            sphere.setAttribute("metalness", "0.3");
+            sphere.setAttribute("roughness", "0.4");
+            modelContainer.appendChild(sphere);
+            model = sphere;
+        }
+        loadDefaultSphere();
+
+        // File Upload
+        document.getElementById("fileInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            let url = URL.createObjectURL(file);
+
+            // Hapus model lama
+            if (model) model.remove();
+
+            // Load GLB
+            let entity = document.createElement("a-entity");
+            entity.setAttribute("gltf-model", url);
+            entity.setAttribute("scale", "0.5 0.5 0.5");
+            modelContainer.appendChild(entity);
+            model = entity;
+
+            document.getElementById("modelStatus").textContent = file.name + " ✓";
+        });
+
+        // Rotasi
+        function toggleRotation() {
+            autoRotate = !autoRotate;
+            document.getElementById("rotationState").textContent = autoRotate ? "ON" : "OFF";
+        }
+
+        // Auto-rotate update loop
+        setInterval(() => {
+            if (autoRotate && model) {
+                let rot = model.getAttribute("rotation");
+                model.setAttribute("rotation", {
+                    x: rot.x,
+                    y: rot.y + 1,
+                    z: rot.z
+                });
+            }
+        }, 40);
+    </script>
+
 </body>
 </html>
