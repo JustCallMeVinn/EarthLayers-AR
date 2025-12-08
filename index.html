@@ -3,405 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR Marker - Bumi 3D (Hiro Marker)</title>
-    <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
+    <title>AR Edukasi Lapisan Bumi 3D</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-        }
-        #info {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: rgba(0,0,0,0.85);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            font-size: 13px;
-            max-width: 300px;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-        #info h3 {
-            margin: 0 0 12px 0;
-            font-size: 17px;
-            color: #4CAF50;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        #info p {
-            margin: 8px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .status {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 11px;
-        }
-        .status.active {
-            background: #4CAF50;
-            color: white;
-        }
-        .status.inactive {
-            background: #f44336;
-            color: white;
-        }
-        .status.loading {
-            background: #FF9800;
-            color: white;
-        }
-        #controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
-            padding: 15px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-        .button-row {
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            padding: 12px 20px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: bold;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-        button:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
-        button:active {
-            transform: scale(0.95);
-        }
-        button.secondary {
-            background: #2196F3;
-        }
-        button.secondary:hover {
-            background: #1976D2;
-        }
-        #fileInput {
-            display: none;
-        }
-        #instructions {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 400px;
-            z-index: 9998;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        #instructions h2 {
-            color: #4CAF50;
-            margin-bottom: 15px;
-        }
-        #instructions ol {
-            text-align: left;
-            margin: 15px 0;
-            padding-left: 25px;
-        }
-        #instructions li {
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-        #instructions button {
-            margin-top: 15px;
-            width: 100%;
-        }
-        .marker-preview {
-            width: 150px;
-            height: 150px;
-            margin: 15px auto;
-            border: 3px solid #4CAF50;
-            border-radius: 10px;
-        }
-        a-scene {
-            width: 100vw;
-            height: 100vh;
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+        body{background:#000;overflow:hidden;height:100vh;color:#fff}
+        .glass{background:rgba(15,15,35,0.85);backdrop-filter:blur(16px);border-radius:16px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+        
+        #startScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;animation:fadeIn 1s}
+        #startScreen h1{font-size:2.5em;margin-bottom:20px;color:#4CAF50;text-shadow:0 0 20px #4CAF50}
+        #startScreen button{padding:18px 40px;font-size:18px;background:#4CAF50;color:#fff;border:none;border-radius:50px;cursor:pointer;margin-top:30px;box-shadow:0 10px 30px rgba(76,175,80,0.4);transition:0.3s}
+        #startScreen button:hover{transform:translateY(-5px);box-shadow:0 20px 40px rgba(76,175,80,0.6)}
+
+        #info{position:fixed;top:15px;left:15px;padding:15px 20px;max-width:320px;z-index:999}
+        #info h3{font-size:18px;color:#4CAF50;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+        .status{padding:5px 12px;border-radius:8px;font-weight:bold;font-size:12px}
+        .active{background:#4CAF50;color:#fff}
+        .inactive{background:#f44336;color:#fff}
+        .loading{background:#FF9800;color:#fff}
+
+        #layerInfo{position:fixed;top:15px;right:15px;padding:20px;max-width:300px;display:none;z-index:999;animation:slideIn 0.6s}
+        #layerInfo h4{color:#4CAF50;font-size:17px;margin-bottom:15px}
+        .layer{margin:12px 0;padding:12px;background:rgba(255,255,255,0.08);border-radius:10px;border-left:5px solid;transition:0.3s}
+        .layer:hover{transform:translateX(5px);background:rgba(255,255,255,0.15)}
+        .crust{border-color:#8B4513}
+        .mantle{border-color:#FF6B35}
+        .outer-core{border-color:#FFC300}
+        .inner-core{border-color:#FFFFFF}
+
+        #controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:15px 20px;display:none;flex-direction:column;gap:15px;align-items:center;max-width:95vw;z-index:999}
+        .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+        button{padding:14px 24px;border:none;border-radius:12px;font-weight:bold;cursor:pointer;transition:all 0.3s;box-shadow:0 6px 20px rgba(0,0,0,0.3)}
+        button:hover{transform:translateY(-3px)}
+        button:active{transform:scale(0.95)}
+        .primary{background:#4CAF50;color:#fff}
+        .danger{background:#FF5722;color:#fff}
+        .secondary{background:#2196F3;color:#fff}
+        .slider-row{display:flex;align-items:center;gap:10px;width:100%;max-width:400px;font-size:13px}
+        input[type=range]{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,0.2);outline:none}
+        input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:#4CAF50;border-radius:50%;cursor:pointer;box-shadow:0 0 10px #4CAF50}
+
+        #hint{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(255,107,53,0.95);padding:14px 28px;border-radius:50px;font-weight:bold;font-size:15px;z-index:999;animation:pulse 2s infinite;display:none}
+        @keyframes pulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.1)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
     </style>
 </head>
 <body>
-    <div id="instructions">
-        <h2>📱 Cara Menggunakan</h2>
-        <div class="marker-preview">
-            <svg viewBox="0 0 100 100" style="width:100%;height:100%">
-                <rect width="100" height="100" fill="black"/>
-                <rect x="15" y="15" width="70" height="70" fill="white"/>
-                <text x="50" y="60" text-anchor="middle" font-size="24" font-weight="bold" fill="black">Hiro</text>
-            </svg>
-        </div>
-        <ol>
-            <li>Cetak atau tampilkan <strong>Hiro Marker</strong> di layar lain</li>
-            <li>Upload file <strong>bumi.glb</strong> Anda</li>
-            <li>Arahkan kamera ke marker</li>
-            <li>Model 3D akan muncul di atas marker!</li>
-        </ol>
-        <button onclick="startAR()">🚀 Mulai AR</button>
+
+<div id="startScreen" class="glass">
+    <h1>🌍 Lapisan Bumi 3D</h1>
+    <p style="font-size:18px;text-align:center;max-width:80%">Arahkan kamera ke marker Hiro<br>Ketuk bumi untuk melihat lapisan dalam!</p>
+    <button onclick="startAR()">Mulai AR Edukatif</button>
+</div>
+
+<a-scene id="scene" embedded arjs="sourceType:webcam;debugUIEnabled:false" renderer="logarithmicDepthBuffer:true" vr-mode-ui="enabled:false" style="display:none">
+    <a-marker preset="hiro" id="marker">
+        <a-entity id="earth" scale="2 2 2" animation="property:rotation;to:0 360 0;loop:true;dur:15000;easing:linear"></a-entity>
+    </a-marker>
+    <a-entity camera></a-entity>
+</a-scene>
+
+<div id="info" class="glass">
+    <h3>🌍 Lapisan Bumi</h3>
+    <p>Kamera: <span id="camStatus" class="status loading">Loading...</span></p>
+    <p>Marker: <span id="markerStatus" class="status inactive">Cari Hiro</span></p>
+    <p>Model: <span id="modelStatus" class="status inactive">Belum Upload</span></p>
+    <p>Status: <span id="openStatus">Tertutup</span></p>
+</div>
+
+<div id="layerInfo" class="glass">
+    <h4>📚 Informasi Lapisan Bumi</h4>
+    <div class="layer crust"><strong>Kerak Bumi (Crust)</strong><br>Tebal 5–70 km</div>
+    <div class="layer mantle"><strong>Mantel (Mantle)</strong><br>Tebal ~2.900 km | Suhu 1.000–3.700°C</div>
+    <div class="layer outer-core"><strong>Inti Luar (Outer Core)</strong><br>Cair | Tebal ~2.200 km | Suhu ~5.000°C</div>
+    <div class="layer inner-core"><strong>Inti Dalam (Inner Core)</strong><br>Padat | Radius ~1.220 km | Suhu ~5.200°C</div>
+</div>
+
+<div id="hint">👆 Ketuk Bumi untuk Membelah!</div>
+
+<div id="controls" class="glass">
+    <div class="btn-row">
+        <button class="primary" onclick="document.getElementById('file').click()">📁 Upload bumi.glb</button>
+        <button class="danger" id="openBtn" onclick="toggleOpen()">🔓 Buka Lapisan</button>
+        <button class="secondary" id="rotBtn" onclick="toggleRot()">🔄 Rotasi ON</button>
     </div>
-
-    <a-scene
-        id="arScene"
-        embedded
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-        vr-mode-ui="enabled: false"
-        renderer="logarithmicDepthBuffer: true; precision: medium;"
-        style="display: none;">
-        
-        <a-assets>
-            <a-asset-item id="bumiModel" src=""></a-asset-item>
-        </a-assets>
-
-        <a-marker id="hiroMarker" preset="hiro">
-            <a-entity
-                id="model"
-                scale="0.5 0.5 0.5"
-                position="0 0.5 0"
-                rotation="0 0 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
-            </a-entity>
-        </a-marker>
-
-        <a-entity camera></a-entity>
-    </a-scene>
-
-    <div id="info" style="display: none;">
-        <h3>🌍 AR Bumi 3D</h3>
-        <p>Kamera: <span id="cameraStatus" class="status loading">Loading...</span></p>
-        <p>Marker: <span id="markerStatus" class="status inactive">Cari Hiro Marker</span></p>
-        <p>Model: <span id="modelStatus" class="status inactive">Belum Upload</span></p>
+    <div class="slider-row">
+        <span>Ukuran:</span> <span id="scaleVal">2.0</span>x
+        <input type="range" min="0.5" max="6" step="0.1" value="2" oninput="setScale(this.value)">
     </div>
-
-    <div id="controls" style="display: none;">
-        <div class="button-row">
-            <button onclick="document.getElementById('fileInput').click()">
-                📁 Upload bumi.glb
-            </button>
-            <button class="secondary" onclick="toggleRotation()">
-                🔄 <span id="rotationState">Rotasi ON</span>
-            </button>
-        </div>
-        <div class="button-row">
-            <button class="secondary" onclick="downloadMarker()">
-                📥 Download Marker
-            </button>
-            <button class="secondary" onclick="showInstructions()">
-                ❓ Bantuan
-            </button>
-        </div>
+    <div class="slider-row">
+        <span>Buka:</span> <span id="openVal">0</span>%
+        <input type="range" id="openSlider" min="0" max="100" step="2" value="0" oninput="setOpen(this.value)">
     </div>
+</div>
 
-    <input type="file" id="fileInput" accept=".glb,.gltf">
+<input type="file" id="file" accept=".glb,.gltf" style="display:none">
 
-    <script>
-        let modelEntity;
-        let rotationEnabled = true;
-        let markerFound = false;
+<script>
+    let isOpen = false, progress = 0, rotationOn = true;
 
-        function startAR() {
-            document.getElementById('instructions').style.display = 'none';
-            document.getElementById('arScene').style.display = 'block';
-            document.getElementById('info').style.display = 'block';
-            document.getElementById('controls').style.display = 'flex';
-            
-            // Wait for AR.js to initialize
-            setTimeout(() => {
-                updateStatus('cameraStatus', 'Aktif', true);
-            }, 2000);
-            
-            // Setup marker detection
-            setupMarkerDetection();
-        }
-
-        function setupMarkerDetection() {
-            const marker = document.querySelector('#hiroMarker');
-            
-            marker.addEventListener('markerFound', () => {
-                markerFound = true;
-                updateStatus('markerStatus', 'Terdeteksi ✓', true);
-                console.log('Hiro Marker Found!');
-            });
-            
-            marker.addEventListener('markerLost', () => {
-                markerFound = false;
-                updateStatus('markerStatus', 'Hilang', false);
-                console.log('Hiro Marker Lost!');
-            });
-        }
-
-        document.getElementById('fileInput').addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            updateStatus('modelStatus', 'Loading...', 'loading');
-
-            try {
-                // Create object URL for the model
-                const url = URL.createObjectURL(file);
+    AFRAME.registerComponent('earth-belahan', {
+        schema: {open:{type:'number',default:0}},
+        init: function(){
+            this.meshes = [];
+            this.initialized = false;
+        },
+        tick: function(){
+            if(!this.initialized){
+                const model = this.el.getObject3D('mesh');
+                if(!model) return;
                 
-                // Remove existing model if any
-                modelEntity = document.querySelector('#model');
-                while (modelEntity.firstChild) {
-                    modelEntity.removeChild(modelEntity.firstChild);
+                this.initialized = true;
+                console.log('🔍 Memindai model...');
+                
+                model.traverse(obj => {
+                    if(obj.isMesh){
+                        // Simpan semua mesh dengan data aslinya
+                        obj.userData.originalPosition = obj.position.clone();
+                        obj.userData.originalRotation = obj.rotation.clone();
+                        obj.userData.originalScale = obj.scale.clone();
+                        
+                        this.meshes.push({
+                            mesh: obj,
+                            name: obj.name,
+                            nameLower: obj.name.toLowerCase()
+                        });
+                        
+                        console.log('📦 Mesh ditemukan:', obj.name);
+                    }
+                });
+                
+                console.log('✅ Total mesh:', this.meshes.length);
+            }
+            
+            // Animasi setiap frame
+            this.animateOpen(this.data.open);
+        },
+        animateOpen: function(openValue){
+            const t = openValue / 100;
+            
+            this.meshes.forEach(item => {
+                const mesh = item.mesh;
+                const name = item.nameLower;
+                const orig = mesh.userData.originalPosition;
+                
+                // Reset ke posisi original
+                mesh.position.copy(orig);
+                mesh.rotation.copy(mesh.userData.originalRotation);
+                mesh.scale.copy(mesh.userData.originalScale);
+                
+                // INNER CORE - Tetap di tengah, membesar
+                if(name.includes('inner')){
+                    const scale = 1 + t * 1.5;
+                    mesh.scale.setScalar(scale);
+                    if(mesh.material){
+                        mesh.material.emissive = new THREE.Color(0xffff00);
+                        mesh.material.emissiveIntensity = 1 + t * 10;
+                    }
+                }
+                // OUTER CORE - Geser sedikit ke kanan
+                else if(name.includes('outer')){
+                    mesh.position.x = orig.x + (t * 3);
+                    mesh.rotation.y = t * Math.PI / 6;
+                }
+                // MANTLE - Geser lebih jauh ke kanan
+                else if(name.includes('mantle')){
+                    mesh.position.x = orig.x + (t * 5);
+                    mesh.rotation.y = t * Math.PI / 4;
+                }
+                // CRUST - Deteksi kiri/kanan berdasarkan posisi X original
+                else if(name.includes('crust')){
+                    if(name.includes('2') || name.includes('right') || orig.x > 0){
+                        // Kerak KANAN
+                        mesh.position.x = orig.x + (t * 7);
+                        mesh.rotation.y = t * Math.PI / 3;
+                    } else {
+                        // Kerak KIRI
+                        mesh.position.x = orig.x - (t * 7);
+                        mesh.rotation.y = -t * Math.PI / 3;
+                    }
+                }
+                // Mesh lain yang tidak teridentifikasi - pisah berdasarkan posisi X
+                else {
+                    if(orig.x > 0.1){
+                        mesh.position.x = orig.x + (t * 7);
+                        mesh.rotation.y = t * Math.PI / 3;
+                    } else if(orig.x < -0.1){
+                        mesh.position.x = orig.x - (t * 7);
+                        mesh.rotation.y = -t * Math.PI / 3;
+                    }
+                }
+            });
+        }
+    });
+
+    function startAR(){
+        document.getElementById('startScreen').remove();
+        document.getElementById('scene').style.display = 'block';
+        document.getElementById('info').style.display = 'block';
+        document.getElementById('controls').style.display = 'flex';
+        
+        setTimeout(() => {
+            document.getElementById('camStatus').className = 'status active';
+        }, 2000);
+        
+        document.querySelector('#marker').addEventListener('markerFound', () => {
+            document.getElementById('markerStatus').className = 'status active';
+            document.getElementById('hint').style.display = 'block';
+        });
+        
+        document.querySelector('#marker').addEventListener('markerLost', () => {
+            document.getElementById('markerStatus').className = 'status inactive';
+            document.getElementById('hint').style.display = 'none';
+        });
+    }
+
+    document.getElementById('file').onchange = e => {
+        const f = e.target.files[0];
+        if(!f) return;
+        
+        const url = URL.createObjectURL(f);
+        const earth = document.getElementById('earth');
+        
+        // Hapus model lama
+        earth.innerHTML = '';
+        
+        // Buat model baru dengan event listener
+        const model = document.createElement('a-gltf-model');
+        model.setAttribute('src', url);
+        
+        // Tunggu model selesai loading
+        model.addEventListener('model-loaded', () => {
+            console.log('✅ Model loaded event fired');
+            
+            // Cek langsung apakah ada mesh
+            setTimeout(() => {
+                const earth = document.getElementById('earth');
+                const gltfModel = earth.querySelector('a-gltf-model');
+                
+                if(gltfModel){
+                    const obj3D = gltfModel.getObject3D('mesh');
+                    console.log('🔍 Checking model structure...');
+                    console.log('Object3D exists:', !!obj3D);
+                    
+                    if(obj3D){
+                        let meshCount = 0;
+                        let meshNames = [];
+                        
+                        obj3D.traverse(o => {
+                            console.log('  └─', o.type, ':', o.name || '(unnamed)');
+                            if(o.isMesh){
+                                meshCount++;
+                                meshNames.push(o.name);
+                            }
+                        });
+                        
+                        console.log('📊 Total meshes found:', meshCount);
+                        console.log('📝 Mesh names:', meshNames);
+                    }
                 }
                 
-                // Create new GLTF model
-                const gltfModel = document.createElement('a-gltf-model');
-                gltfModel.setAttribute('src', url);
-                gltfModel.setAttribute('scale', '1 1 1');
-                gltfModel.setAttribute('position', '0 0 0');
+                // Attach component
+                console.log('🔧 Attaching component...');
+                earth.setAttribute('earth-belahan', 'open:0');
                 
-                modelEntity.appendChild(gltfModel);
-                
-                // Wait for model to load
-                gltfModel.addEventListener('model-loaded', () => {
-                    updateStatus('modelStatus', file.name + ' ✓', true);
-                    console.log('Model loaded successfully!');
-                    
-                    // Auto-adjust scale if needed
-                    setTimeout(() => {
-                        adjustModelScale(gltfModel);
-                    }, 500);
-                });
-                
-                gltfModel.addEventListener('model-error', (error) => {
-                    console.error('Model loading error:', error);
-                    updateStatus('modelStatus', 'Error', false);
-                    alert('Gagal memuat model. Pastikan file GLB/GLTF valid.');
-                });
-                
-            } catch (error) {
-                console.error('Error:', error);
-                updateStatus('modelStatus', 'Error', false);
-                alert('Terjadi kesalahan saat memuat file.');
+                // Test component setelah 3 detik
+                setTimeout(() => {
+                    console.log('🧪 Testing component after 3 seconds...');
+                    const component = earth.components['earth-belahan'];
+                    if(component){
+                        console.log('✓ Component exists');
+                        console.log('✓ Initialized:', component.initialized);
+                        console.log('✓ Meshes detected:', component.meshes.length);
+                        if(component.meshes.length > 0){
+                            console.log('🎉 SUCCESS! Component is working!');
+                            console.log('👉 Now try moving the slider!');
+                        } else {
+                            console.log('❌ No meshes detected yet. Will keep trying...');
+                        }
+                    } else {
+                        console.log('❌ Component not found!');
+                    }
+                }, 3000);
+            }, 500);
+        });
+        
+        earth.appendChild(model);
+        
+        document.getElementById('modelStatus').textContent = f.name.split('.')[0];
+        document.getElementById('modelStatus').className = 'status active';
+        
+        console.log('🌍 Model bumi berhasil dimuat:', f.name);
+    };
+
+    function toggleOpen(){
+        isOpen = !isOpen;
+        const target = isOpen ? 100 : 0;
+        
+        anime({
+            targets: {v: progress},
+            v: target,
+            duration: 2400,
+            easing: 'easeOutExpo',
+            update: a => {
+                progress = Math.round(a.animations[0].currentValue);
+                setOpen(progress);
             }
         });
+        
+        document.getElementById('openBtn').textContent = isOpen ? '🔒 Tutup Lapisan' : '🔓 Buka Lapisan';
+        document.getElementById('openStatus').textContent = isOpen ? 'Terbuka' : 'Tertutup';
+        document.getElementById('layerInfo').style.display = isOpen ? 'block' : 'none';
+        document.getElementById('hint').style.display = isOpen ? 'none' : 'block';
+    }
 
-        function adjustModelScale(gltfModel) {
-            // Get the model object
-            const model = gltfModel.getObject3D('mesh');
-            if (!model) return;
-            
-            // Calculate bounding box
-            const box = new THREE.Box3().setFromObject(model);
-            const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
-            
-            // Scale to fit nicely on marker (target size ~1 unit)
-            if (maxDim > 0) {
-                const targetSize = 1;
-                const scale = targetSize / maxDim;
-                gltfModel.setAttribute('scale', `${scale} ${scale} ${scale}`);
-            }
+    function setOpen(v){
+        progress = v;
+        document.getElementById('openVal').textContent = v;
+        document.getElementById('openSlider').value = v;
+        
+        const earth = document.getElementById('earth');
+        earth.setAttribute('earth-belahan', `open:${v}`);
+        
+        console.log('📊 Setting open value to:', v);
+    }
+
+    function setScale(v){
+        document.getElementById('earth').setAttribute('scale', `${v} ${v} ${v}`);
+        document.getElementById('scaleVal').textContent = parseFloat(v).toFixed(1);
+    }
+
+    function toggleRot(){
+        rotationOn = !rotationOn;
+        const el = document.getElementById('earth');
+        
+        if(rotationOn){
+            el.setAttribute('animation', 'property:rotation;to:0 360 0;loop:true;dur:15000;easing:linear');
+        } else {
+            el.removeAttribute('animation');
         }
+        
+        document.getElementById('rotBtn').textContent = rotationOn ? '🔄 Rotasi ON' : '⏸️ Rotasi OFF';
+    }
 
-        function toggleRotation() {
-            rotationEnabled = !rotationEnabled;
-            const modelEl = document.querySelector('#model');
-            
-            if (rotationEnabled) {
-                modelEl.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear');
-                document.getElementById('rotationState').textContent = 'Rotasi ON';
-            } else {
-                modelEl.removeAttribute('animation');
-                document.getElementById('rotationState').textContent = 'Rotasi OFF';
-            }
+    // Klik pada model bumi untuk toggle buka/tutup
+    document.querySelector('a-scene').addEventListener('click', e => {
+        if(e.detail.intersection && document.getElementById('earth').children.length){
+            toggleOpen();
         }
-
-        function downloadMarker() {
-            // Create a canvas with Hiro marker
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 800;
-            const ctx = canvas.getContext('2d');
-            
-            // Draw marker
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, 800, 800);
-            
-            ctx.fillStyle = 'white';
-            ctx.fillRect(100, 100, 600, 600);
-            
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 200px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('Hiro', 400, 400);
-            
-            // Download
-            canvas.toBlob((blob) => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'hiro-marker.png';
-                a.click();
-                URL.revokeObjectURL(url);
-            });
-        }
-
-        function showInstructions() {
-            document.getElementById('instructions').style.display = 'block';
-        }
-
-        function updateStatus(elementId, text, state = null) {
-            const element = document.getElementById(elementId);
-            element.textContent = text;
-            
-            if (state !== null && element.classList.contains('status')) {
-                element.className = 'status';
-                if (state === true) {
-                    element.classList.add('active');
-                } else if (state === 'loading') {
-                    element.classList.add('loading');
-                } else {
-                    element.classList.add('inactive');
-                }
-            }
-        }
-
-        // Prevent default touch behaviors
-        document.addEventListener('touchmove', (e) => {
-            if (e.target.tagName !== 'BUTTON') {
-                e.preventDefault();
-            }
-        }, { passive: false });
-    </script>
+    });
+</script>
 </body>
 </html>
